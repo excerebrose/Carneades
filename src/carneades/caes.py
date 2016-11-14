@@ -787,8 +787,45 @@ class CAES(object):
         args = self.argset.get_arguments(con)
         return self.max_weight_applicable(args)
 
+class Reader(object):
+    """
+    Class Designed to read data from a *.txt file.
+    Loads data into CAES system for evaluation.
+    """
+
+    def __init__ (self):
+        """
+        Constructor for Reader class.
+        :params - None.
+        To load up a text file use load()
+        """
+        self.fileObject = None;
+
+    def load(self,fileObject):
+        """
+        Function to initialise the reader class with a *.txt file object
+        If class is already initialised with fileObject, replaces it.
+
+        :param fileObject: A text file object containing the CAES defined input sequences
+                        Mode should be r - ie. read only. No writing is done to the file.
+        :type file object
+        """
+        if fileObject.mode != 'r':
+            raise Exception('{} not opened in \'r\' mode. Retry again.'.format(fileObject.name))
+        if self.fileObject is not None:
+            print('Updating instance of class. Closing {}'.format(self.fileObject.name))
+            self.fileObject.close()
+        print('Loading text file {}'.format(fileObject.name))
+        self.fileObject = fileObject
 
 
+
+def reader_demo():
+    r = Reader()
+    f = open('test1.txt','r')
+    r.load(f)
+    f = open('test2.txt')
+    r.load(f)
 
 def arg_demo():
     """
@@ -832,4 +869,5 @@ if __name__ == '__main__':
         import doctest
         doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE)
     else:
-        arg_demo()
+       # arg_demo()
+       reader_demo()
