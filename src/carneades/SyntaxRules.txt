@@ -1,0 +1,15 @@
+Document Structure:
+
+General structures for different methods are given below:
+*For Comments*
+
+# For comment 
+commandNumber:
+    func_name: 
+    type: func/constructor
+    var_name: 
+    args:
+        arg_name1
+        arg_name2
+        .....
+    return_var:optional

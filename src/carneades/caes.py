@@ -164,7 +164,7 @@ import os
 import sys
 
 from igraph import Graph, plot
-
+import yaml
 # fix to ensure that package is loaded properly on system path
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
@@ -817,14 +817,39 @@ class Reader(object):
             self.fileObject.close()
         print('Loading text file {}'.format(fileObject.name))
         self.fileObject = fileObject
+        self.deserialise()
+    
+    def check_command_structure(self, c):
+        """
+        Checks validty of a command sequence.
+        :params c - command 
+        :type c- dictionary
+        
+        """
+        must_have_keys = ['type','func_name','var_name','args','return_var']
+        for k in c:
+            if k not in must_have_keys:
+                raise IOError('Key:{} invalid. Refer to documentation on correct syntax'.format(k))
+            if (k=="type" and c[k] !="construct" and c[k] !="func"):
+                raise IOError('Function type: {} not recognised'.format(c[k]))
+        
+    def deserialise(self):
+        """
+        Function to deserialise the given file, validate it and create a command stack to execute.
+        :params - None
+
+        """
+        valid_functions = {'PropLiteral':PropLiteral,'Argument':Argument,'ArgumentSet':ArgumentSet,'Audience': Audience, 'ProofStandard':ProofStandard,'CAES':CAES}
+        command_stack = yaml.load(self.fileObject)
+        for k,command in command_stack.items():
+            self.check_command_structure(command)
+
 
 
 
 def reader_demo():
     r = Reader()
     f = open('test1.txt','r')
-    r.load(f)
-    f = open('test2.txt')
     r.load(f)
 
 def arg_demo():

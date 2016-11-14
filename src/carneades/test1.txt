@@ -1,0 +1,18 @@
+0:
+    func_name: PropLiteral
+    type: construct
+    var_name: kill
+    args:
+        None
+1:
+    func_name: PropLiteral
+    type: construct
+    var_name: intent
+    args:
+        None
+2:
+    func_name: negate
+    type: func
+    var_name: intent
+    args: 
+        None
