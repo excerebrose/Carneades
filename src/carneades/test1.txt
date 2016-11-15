@@ -152,4 +152,3 @@
     args:
         proposition: intent
         standard: "beyond_reasonable_doubt"
-        return_var: kjhs

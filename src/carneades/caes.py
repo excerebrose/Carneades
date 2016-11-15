@@ -153,7 +153,64 @@ False
 >>> caes.acceptable(murder.negate())
 False
 
+Reader
+=========
+Class reader is used to load up custom syntax config file for using the CAES System model.
+First things first, this class depends on an external library called PyYAML for parsing. So you can do either 
+From your virtual environment
 
+>>> pip install -r Requirements.txt
+
+or
+
+>>> pip install PyYAML
+
+To load up a text file written in the specified format:
+Note however the file should be opened only in read mode.
+
+>>> r = Reader()
+>>> file = open("file.text")
+>>> r.load(file)
+
+Syntax rules for class Reader:
+Every command is written in the following manner ::
+
+    9: 
+        func_name: Argument
+        type: construct
+        var_name: arg2
+        args:
+            conclusion: intent
+            premises: [witness1]
+            exceptions: [unreliable1]
+
+    10: 
+        func_name: add_argument
+        var_name: argset
+        type: func
+        args:
+            argument: arg2
+
+Lets walk through the syntax elements:
+Every command precedes with a command number (can start either from 0 or 1).
+Every command number must be unique and in-order the order you want them to be executed.
+
+We use indentation to seperate heirchy just like python.
+Comments are written with like ::
+
+    #This is a comment. just like python. Life is great yeah?
+
+The bare required 'keys' for every command are ::
+
+    func_name: # can be any of the function names that are approved (check misc for data)
+    type: # construct / func - depends on the type of function
+    var_name: #easy enough to understand
+    args: #indented args. see test1.txt for example
+
+
+All functions have the same name while calling them from the api, so make sure that's taken care of. The arguments take names
+as parameters, so just go over the Reader class to see what's allowed or not. 
+Check the test1.txt to see examples in case of confusion.
 
 """
 
@@ -791,13 +848,14 @@ class Reader(object):
     """
     Class Designed to read data from a *.txt file.
     Loads data into CAES system for evaluation.
+
     """
 
     def __init__ (self):
         """
         Constructor for Reader class.
-        :param  None.
         To load up a text file use load()
+
         """
         self.fileObject = None;
         self. initialised_variables = {}
@@ -809,7 +867,8 @@ class Reader(object):
 
         :param fileObject: A text file object containing the CAES defined input sequences
                         Mode should be r - ie. read only. No writing is done to the file.
-        :type fileObject file object
+        :type fileObject: file object
+
         """
         if fileObject.mode != 'r':
             raise Exception('{} not opened in \'r\' mode. Retry again.'.format(fileObject.name))
@@ -823,11 +882,19 @@ class Reader(object):
     def is_initialized(self, var_name, var_type):
         """
         Function to check whether a variable has been initialised.
-        :params var_name - Variable name to check
-        :params var_type - Type of variable required
-        :type var_name - string
-        :type var_type - any class
-        :returns variable value if exists
+
+        :param var_name: The variable name to check.
+
+        :type var_name: str
+
+        :param var_type: The type to check against type of var_name
+
+        :type var_type: Any
+
+        :rtype: var_type
+        :raises TypeError: if the var_name type doesnot match var_type
+        :raises NameError: if the var_name isn't initialised
+
         """
         if var_name in self.initialised_variables :
             if var_type == type(self.initialised_variables[var_name]):
@@ -840,10 +907,16 @@ class Reader(object):
     def check_command_structure(self, c):
         """
         Checks validty of a command sequence.
-        :param c - command 
-        :param keys - Allowed keys for the command block
-        :type c- dictionary
-        :type keys - list
+        This checks syntactic validity of the command in terms of whta's allowed in the specific type of function call -
+        which ones are allowed and which ones aren't.
+        Take a look at the source and the valid_functions dict to see what's happening.
+
+        :param c: command 
+        :type c: dict
+
+        :raises ValueError: if the key in command is invalid in args/ main
+        :raises IOError: if a required key is missing in main / args
+
         """
         must_have_keys = ['type','func_name','var_name','args']
         optional_keys = ['return_var']
@@ -895,8 +968,7 @@ class Reader(object):
                     
     def deserialise(self):
         """
-        Function to deserialise the given file, validate it and create a command stack to execute.
-        :params - None
+        Function to deserialise the given file, validate it and creates and executes a command stack.
 
         """
         command_stack = yaml.load(self.fileObject)
