@@ -796,10 +796,11 @@ class Reader(object):
     def __init__ (self):
         """
         Constructor for Reader class.
-        :params - None.
+        :param  None.
         To load up a text file use load()
         """
         self.fileObject = None;
+        self. initialised_variables = {}
 
     def load(self,fileObject):
         """
@@ -808,7 +809,7 @@ class Reader(object):
 
         :param fileObject: A text file object containing the CAES defined input sequences
                         Mode should be r - ie. read only. No writing is done to the file.
-        :type file object
+        :type fileObject file object
         """
         if fileObject.mode != 'r':
             raise Exception('{} not opened in \'r\' mode. Retry again.'.format(fileObject.name))
@@ -818,33 +819,117 @@ class Reader(object):
         print('Loading text file {}'.format(fileObject.name))
         self.fileObject = fileObject
         self.deserialise()
-    
+    def is_initialized(self, var_name, var_type):
+        """
+        Function to check whether a variable has been initialised.
+        :params var_name - Variable name to check
+        :params var_type - Type of variable required
+        :type var_name - string
+        :type var_type - any class
+        :returns variable value if exists
+        """
+        if var_name in self.initialised_variables :
+            if var_type == type(self.initialised_variables[var_name]):
+                return self.initialised_variables[var_name]
+            else:
+                raise TypeError("{} doesn't match required type {}".format(type(self.initialised_variables[var_name]),var_type))
+        else:
+            raise NameError("{} is not defined".format(var_name))
+
     def check_command_structure(self, c):
         """
         Checks validty of a command sequence.
-        :params c - command 
+        :param c - command 
+        :param keys - Allowed keys for the command block
         :type c- dictionary
-        
+        :type keys - list
         """
-        must_have_keys = ['type','func_name','var_name','args','return_var']
+        must_have_keys = ['type','func_name','var_name','args']
+        valid_functions = {
+        'PropLiteral':{'valid_args':['polarity'],'req_args':[]},
+        'Argument':{'valid_args':['conclusion','premises','exceptions'],'req_args':['conclusion']},
+        'ArgumentSet':{'valid_args':[],'req_args':[]},
+        'Audience': {'valid_args':['assumptions','weight'],'req_args':['assumptions','weight']}, 
+        'ProofStandard': {'valid_args':['propstandards'],'req_args':['propstandards']},
+        'CAES':{'valid_args':['argset','audience','proofstandard','alpha','beta','gamma'],'req_args':['argset','audience','proofstandard']}}
         for k in c:
             if k not in must_have_keys:
-                raise IOError('Key:{} invalid. Refer to documentation on correct syntax'.format(k))
-            if (k=="type" and c[k] !="construct" and c[k] !="func"):
-                raise IOError('Function type: {} not recognised'.format(c[k]))
-        
+                raise ValueError('Key:{} invalid. Refer to documentation on correct syntax'.format(k))
+        for k in must_have_keys:
+            if k not in c:
+                raise IOError("Required key {} missing".format(k))
+        func_name = c['func_name']
+        if func_name in valid_functions:
+            #Check for valid Arguments alowed
+            valid_args = valid_functions[func_name]['valid_args']
+            req_args = valid_functions[func_name]['req_args']
+            if c['args'] != "None":
+                for arg in c['args']:
+                    if arg not in valid_args:
+                        raise ValueError("Arg: {} invalid for constructor {}".format(arg,func_name))
+                for arg in req_args:
+                    if arg not in c['args']:
+                        raise IOError("Required argument(s) {} missing in {}".format(arg,func_name))
+            if c['args'] == "None" and len(req_args) > 0:
+                raise IOError("Required arguments missing in {}".format(func_name))
+                    
     def deserialise(self):
         """
         Function to deserialise the given file, validate it and create a command stack to execute.
         :params - None
 
         """
-        valid_functions = {'PropLiteral':PropLiteral,'Argument':Argument,'ArgumentSet':ArgumentSet,'Audience': Audience, 'ProofStandard':ProofStandard,'CAES':CAES}
         command_stack = yaml.load(self.fileObject)
+        self.initialised_variables = {}
+        print("Deserialising file {}".format(self.fileObject.name))
         for k,command in command_stack.items():
+            print("Processing command {}...".format(k))
             self.check_command_structure(command)
-
-
+            var_name = command['var_name']
+            func_name = command['func_name']
+            args = command['args']
+            if (command['type'] == "construct"):
+                if func_name == "PropLiteral":
+                    if args != "None":
+                        self.initialised_variables[var_name] = PropLiteral(var_name,polarity=args['polarity'])
+                    else:
+                        self.initialised_variables[var_name] = PropLiteral(var_name)
+                if func_name == "Argument":
+                    premises = []
+                    exceptions = []
+                    conclusion = self.is_initialized(args['conclusion'],PropLiteral)
+                    if 'premises' in args and args["premises"] != "None":
+                        premises = [self.is_initialized(x,PropLiteral) for x in args['premises']]
+                    if 'exceptions' in args and args["exceptions"] != "None":
+                        exceptions = [self.is_initialized(x,PropLiteral) for x in args['exceptions']]
+                    self.initialised_variables[var_name] = Argument(conclusion,premises=set(premises),exceptions=set(exceptions))
+                if func_name == "ArgumentSet":
+                    self.initialised_variables[var_name] = ArgumentSet()
+                if func_name == "Audience":
+                    assumptions = [self.is_initialized(x,PropLiteral) for x in args['assumptions']]
+                    self.initialised_variables[var_name] = Audience(set(assumptions),args['weight'])
+                if func_name == "ProofStandard":
+                    prop_standards = [(self.is_initialized(k,PropLiteral),v) for k,v in args['propstandards'].items()]
+                    self.initialised_variables[var_name] = ProofStandard(prop_standards)
+                if func_name == "CAES":
+                    argset = self.is_initialized(args['argset'],ArgumentSet)
+                    audience = self.is_initialized(args['audience'],Audience)
+                    proofStandard = self.is_initialized(args['proofstandard'],ProofStandard)
+                    alpha = 0.4
+                    beta = 0.3
+                    gamma = 0.2
+                    if 'alpha' in args and args['alpha'] != "None":
+                        alpha = args['alpha']
+                    if 'beta' in args and args['beta'] != "None":
+                        alpha = args['beta']
+                    if 'gamma' in args and args['gamma'] != "gamma":
+                        alpha = args['gamma']
+                    self.initialised_variables[var_name] = CAES(argset,audience,proofStandard,alpha,beta,gamma)
+            elif (command['type'] == "func"):
+                print('functions coming soong')
+            else:
+                raise ValueError("{} - invalid argument for key \'type\'")        
+            print("..Done")
 
 
 def reader_demo():

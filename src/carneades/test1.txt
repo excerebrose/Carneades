@@ -11,8 +11,96 @@
     args:
         None
 2:
-    func_name: negate
-    type: func
-    var_name: intent
-    args: 
+    func_name: PropLiteral
+    type: construct
+    var_name: neg_intent
+    args:
+        polarity: False
+3:
+    func_name: PropLiteral
+    type: construct
+    var_name: murder
+    args:
         None
+4:
+    func_name: PropLiteral
+    type: construct
+    var_name: witness1
+    args:
+        None
+5:
+    func_name: PropLiteral
+    type: construct
+    var_name: witness2
+    args:
+        None
+6:
+    func_name: PropLiteral
+    type: construct
+    var_name: unreliable1
+    args:
+        None
+7:
+    func_name: PropLiteral
+    type: construct
+    var_name: unreliable2
+    args:
+        None
+
+8:
+    func_name: Argument
+    type: construct
+    var_name: arg1
+    args:
+        conclusion: murder
+        premises: [kill, intent]
+
+9: 
+    func_name: Argument
+    type: construct
+    var_name: arg2
+    args:
+        conclusion: intent
+        premises: [witness1]
+        exceptions: [unreliable1]
+10: 
+    func_name: Argument
+    type: construct
+    var_name: arg3
+    args:
+        conclusion: neg_intent
+        premises: [witness2]
+        exceptions: [unreliable2]
+11: 
+    func_name: Audience
+    type: construct
+    var_name: audience
+    args:
+        assumptions: [kill, witness1, witness2, unreliable2]
+        weight:
+            arg1: 0.8
+            arg2: 0.3 
+            arg3: 0.8
+12: 
+    func_name: ArgumentSet
+    var_name: argset
+    type: construct
+    args:
+        None
+
+13:
+   func_name: ProofStandard
+   var_name: ps
+   type: construct
+   args:
+      propstandards:
+        intent: "beyond_reasonable_doubt"
+
+14:
+   func_name: CAES
+   var_name: caes
+   type: construct
+   args:
+      argset: argset
+      audience: audience
+      proofstandard: ps
