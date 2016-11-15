@@ -212,6 +212,10 @@ All functions have the same name while calling them from the api, so make sure t
 as parameters, so just go over the Reader class to see what's allowed or not. 
 Check the test1.txt to see examples in case of confusion.
 
+To run tests on the Reader class use ::
+
+    python reader_tests.py
+
 """
 
 
