@@ -11,11 +11,12 @@
     args:
         None
 2:
-    func_name: PropLiteral
-    type: construct
-    var_name: neg_intent
+    func_name: negate
+    type: func
+    var_name: intent
     args:
-        polarity: False
+         return_var: neg_intent
+
 3:
     func_name: PropLiteral
     type: construct
@@ -88,7 +89,25 @@
     args:
         None
 
-13:
+13: 
+    func_name: add_argument
+    var_name: argset
+    type: func
+    args:
+        argument: arg1
+14: 
+    func_name: add_argument
+    var_name: argset
+    type: func
+    args:
+        argument: arg2
+15: 
+    func_name: add_argument
+    var_name: argset
+    type: func
+    args:
+        argument: arg3
+16:
    func_name: ProofStandard
    var_name: ps
    type: construct
@@ -96,7 +115,7 @@
       propstandards:
         intent: "beyond_reasonable_doubt"
 
-14:
+17:
    func_name: CAES
    var_name: caes
    type: construct
@@ -104,3 +123,33 @@
       argset: argset
       audience: audience
       proofstandard: ps
+
+18:
+    func_name: draw
+    var_name: argset
+    type: func
+    args:
+        debug: True
+19:
+    func_name: get_proofstandard
+    var_name: ps
+    type: func
+    args:
+        proposition: intent
+        return_var: profst
+
+20:
+    func_name: acceptable
+    var_name: caes
+    type: func
+    args:
+        proposition: murder
+
+21:
+    func_name: meets_proof_standard
+    var_name: caes
+    type: func
+    args:
+        proposition: intent
+        standard: "beyond_reasonable_doubt"
+        return_var: kjhs

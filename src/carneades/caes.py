@@ -819,6 +819,7 @@ class Reader(object):
         print('Loading text file {}'.format(fileObject.name))
         self.fileObject = fileObject
         self.deserialise()
+
     def is_initialized(self, var_name, var_type):
         """
         Function to check whether a variable has been initialised.
@@ -845,15 +846,32 @@ class Reader(object):
         :type keys - list
         """
         must_have_keys = ['type','func_name','var_name','args']
+        optional_keys = ['return_var']
         valid_functions = {
         'PropLiteral':{'valid_args':['polarity'],'req_args':[]},
         'Argument':{'valid_args':['conclusion','premises','exceptions'],'req_args':['conclusion']},
         'ArgumentSet':{'valid_args':[],'req_args':[]},
         'Audience': {'valid_args':['assumptions','weight'],'req_args':['assumptions','weight']}, 
         'ProofStandard': {'valid_args':['propstandards'],'req_args':['propstandards']},
-        'CAES':{'valid_args':['argset','audience','proofstandard','alpha','beta','gamma'],'req_args':['argset','audience','proofstandard']}}
+        'CAES':{'valid_args':['argset','audience','proofstandard','alpha','beta','gamma'],'req_args':['argset','audience','proofstandard']},
+        'negate':{'valid_args':['return_var'],'req_args':[]},
+        'add_argument':{'valid_args':['argument','arg_id'],'req_args':['argument']},
+        'add_proposition': {'valid_args':['proposition','return_var'],'req_args':['proposition','return_var']},
+        'get_arguments': {'valid_args':['proposition','return_var'],'req_args':['proposition','return_var']},   
+        'draw':{'valid_args':['debug'],'req_args':[]},
+        'write_to_graphviz': {'valid_args':['fname'],'req_args':[]},
+        'get_proofstandard': {'valid_args':['proposition','return_var'],'req_args':['proposition','return_var']},
+        'acceptable': {'valid_args':['proposition','return_var'],'req_args':['proposition']},
+        'applicable': {'valid_args':['proposition','return_var'],'req_args':['proposition']},
+        'get_all_arguments': {'valid_args':[],'req_args':[]},
+        'max_weight_applicable': {'valid_args':['arguments','return_var'],'req_args':['arguments']},
+        'max_weight_con': {'valid_args':['proposition','return_var'],'req_args':['proposition']},
+        'max_weight_pro': {'valid_args':['proposition','return_var'],'req_args':['proposition']},
+        'meets_proof_standard': {'valid_args':['proposition','standard','return_var'],'req_args':['proposition','standard']},
+        'weight_of': {'valid_args':['argument','return_var'],'req_args':['argument']}
+        }
         for k in c:
-            if k not in must_have_keys:
+            if k not in must_have_keys and k not in optional_keys:
                 raise ValueError('Key:{} invalid. Refer to documentation on correct syntax'.format(k))
         for k in must_have_keys:
             if k not in c:
@@ -870,6 +888,8 @@ class Reader(object):
                 for arg in req_args:
                     if arg not in c['args']:
                         raise IOError("Required argument(s) {} missing in {}".format(arg,func_name))
+                    elif c['args'][arg] == "None":
+                        raise IOError("Required argument(s) {} cannot be None".format(arg))
             if c['args'] == "None" and len(req_args) > 0:
                 raise IOError("Required arguments missing in {}".format(func_name))
                     
@@ -926,7 +946,105 @@ class Reader(object):
                         alpha = args['gamma']
                     self.initialised_variables[var_name] = CAES(argset,audience,proofStandard,alpha,beta,gamma)
             elif (command['type'] == "func"):
-                print('functions coming soong')
+                return_var = None
+                if 'return_var' in args and args['return_var'] != "None":
+                    return_var = args['return_var']
+                if func_name == 'negate':
+                    var = self.is_initialized(var_name, PropLiteral)
+                    if return_var is not None:
+                        self.initialised_variables[return_var] = var.negate()
+                    else:
+                        print(var.negate())
+                if func_name == 'add_argument':
+                    var = self.is_initialized(var_name, ArgumentSet)
+                    arg = self.is_initialized(args['argument'], Argument)
+                    arg_id = None
+                    if 'arg_id' in args and args['arg_id'] != "None":
+                        arg_id = args['arg_id']
+                    if return_var is not None:
+                        raise ValueError("{} does not take a return variable".format(func_name))
+                    else:
+                        var.add_argument(arg,arg_id)
+                if func_name == "draw":
+                    var = self.is_initialized(var_name, ArgumentSet)
+                    debug = False
+                    if 'debug' in args and args['debug'] != "None":
+                        debug = args['debug']
+                    var.draw(debug)
+                if func_name == "add_proposition":
+                    var = self.is_initialized(var_name, ArgumentSet)
+                    proposition = self.is_initialized(args['proposition'],PropLiteral)
+                    return_var = args['return_var']
+                    self.initialised_variables[return_var] = var.add_proposiion(proposition)
+                if func_name == "get_arguments":
+                    var = self.is_initialized(var_name, ArgumentSet)
+                    proposition = self.is_initialized(args['proposition'],PropLiteral)
+                    return_var = args['return_var']
+                    self.initialised_variables[return_var] = var.get_arguments(proposition)
+                if func_name == "write_to_graphviz":
+                    var = self.is_initialized(var_name, ArgumentSet)
+                    fname = None
+                    if 'fname' in args and args['fname'] != "None":
+                        fname = args['fname']
+                    var.write_to_graphviz(fname)
+                if func_name == "get_proofstandard":
+                    var = self.is_initialized(var_name,ProofStandard)
+                    prop = self.is_initialized(args['proposition'],PropLiteral)
+                    return_var = args['return_var']
+                    self.initialised_variables[return_var] = var.get_proofstandard(prop)
+                if func_name == "acceptable":
+                    var = self.is_initialized(var_name,CAES)
+                    prop = self.is_initialized(args['proposition'],PropLiteral)
+                    if return_var is not None:
+                        self.initialised_variables[return_var] = var.acceptable(prop)
+                    else:
+                        var.acceptable(prop)
+                if func_name == "applicable":
+                    var = self.is_initialized(var_name,CAES)
+                    prop = self.is_initialized(args['proposition'],PropLiteral)
+                    if return_var is not None:
+                        self.initialised_variables[return_var] = var.applicable(prop)
+                    else:
+                        var.applicable(prop)
+                if func_name == "get_all_arguments":
+                    var = self.is_initialized(var_name,CAES)
+                    var.get_all_arguments()
+                if func_name == "max_weight_applicable":
+                    var = self.is_initialized(var_name,CAES)
+                    arguments = [self.is_initialized(argument, Argument) for argument in args['arguments']]
+                    if return_var is None:
+                        print(var.max_weight_applicable(arguments))
+                    else:
+                        self.initialised_variables[return_var] = var.max_weight_applicable(arguments)
+                if func_name == "max_weight_con":
+                    var = self.is_initialized(var_name,CAES)
+                    prop =  self.is_initialized(args['proposition'],PropLiteral)
+                    if return_var is None:
+                        print(var.max_weight_con(prop))
+                    else:
+                        self.initialised_variables[return_var] = var.max_weight_con(prop)
+                if func_name == "max_weight_pro":
+                    var = self.is_initialized(var_name,CAES)
+                    prop =  self.is_initialized(args['proposition'],PropLiteral)
+                    if return_var is None:
+                        print(var.max_weight_pro(prop))
+                    else:
+                        self.initialised_variables[return_var] = var.max_weight_pro(prop)
+                if func_name == "meets_proof_standard":
+                    var = self.is_initialized(var_name,CAES)
+                    prop =  self.is_initialized(args['proposition'],PropLiteral)
+                    standard = args['standard']
+                    if return_var is None:
+                        print(var.meets_proof_standard(prop,standard))
+                    else:
+                        self.initialised_variables[return_var] = var.meets_proof_standard(prop,standard)
+                if func_name == "weight_of":
+                    var = self.is_initialized(var_name,CAES)
+                    argument =  self.is_initialized(args['argument'],Argument)
+                    if return_var is None:
+                        print(var.weight_of(argument))
+                    else:
+                        self.initialised_variables[return_var] = var.weight_of(argument)
             else:
                 raise ValueError("{} - invalid argument for key \'type\'")        
             print("..Done")
