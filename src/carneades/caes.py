@@ -916,6 +916,7 @@ class Reader(object):
 
         :raises ValueError: if the key in command is invalid in args/ main
         :raises IOError: if a required key is missing in main / args
+        :raises NameError: Invalid function name
 
         """
         must_have_keys = ['type','func_name','var_name','args']
@@ -965,11 +966,14 @@ class Reader(object):
                         raise IOError("Required argument(s) {} cannot be None".format(arg))
             if c['args'] == "None" and len(req_args) > 0:
                 raise IOError("Required arguments missing in {}".format(func_name))
-                    
+        else:
+            raise NameError("Not a valid function {}".format(func_name))
+
     def deserialise(self):
         """
         Function to deserialise the given file, validate it and creates and executes a command stack.
 
+        :raises ValueError: if the return_var is added when not required
         """
         command_stack = yaml.load(self.fileObject)
         self.initialised_variables = {}

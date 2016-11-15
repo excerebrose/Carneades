@@ -142,7 +142,12 @@ $ make html
 $ cd ../src # relative root is carneades/
 $ python -i caes.py
 ```
+#### Run unittest on Reader class
 
+```bash
+$ cd ../src # relative root is carneades/
+$ python reader_tests.py
+```
 ### Install python3.4
 
 (Linux users)
