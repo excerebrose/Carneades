@@ -24,6 +24,7 @@ however, read on.
 * Python3.4
 * igraph
 * pycairo (for igraph)
+* PyYAML (Must)
 * Virtualenv (Optional)
 * Sphinx (docs only)
 * Basicstrap theme for sphinx (docs only)
@@ -42,6 +43,12 @@ python distro.
 $ virtualenv -p python3.4 envname
 $ source /envname/bin/activate
 ```
+#### Install using pip 
+
+```bash
+$ pip install -r Requirements.txt
+```
+or install packages individually.
 
 #### Install sphinx and basicstrap
 
@@ -56,6 +63,11 @@ $ pip install sphinxjp.themes.basicstrap
 $ pip install python-igraph
 ```
 
+#### Install PyYAML
+
+```bash
+$ pip install PyYAML
+```
 This should also install the C bindings. If that doesn't happen
 because of some error, it's likely to be one of the following
 problems:
