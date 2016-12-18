@@ -19,4 +19,12 @@ carneades.tracecalls module
     :undoc-members:
     :special-members: __init__
 
+carneades.reader module
+---------------------------
+
+.. automodule:: carneades.reader
+    :members:
+    :undoc-members:
+    :special-members: __init__
+
 
