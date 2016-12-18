@@ -1,5 +1,6 @@
 import unittest
-from caes import Reader, PropLiteral, Argument
+from caes import PropLiteral, Argument
+from reader import Reader
 
 class ReaderTestCase(unittest.TestCase):
     """

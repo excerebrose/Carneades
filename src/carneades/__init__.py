@@ -2,4 +2,4 @@
 Carneades argumentation package
 """
 
-__all__ = ['caes', 'tracecalls']
+__all__ = ['caes', 'tracecalls','reader']
