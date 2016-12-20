@@ -76,7 +76,7 @@ class Dialogue(object):
 
         :type depth: int
         :return: Return an array of modified caes, modified argumentse and leftover arguments for the side
-        :rtype: [:class:`.CAES`,  :class:`.ArgumentSet`, [:class:`.Argument`]]
+        :rtype: [:class:`.CAES`,  :class:`.ArgumentSet`, [:class:`Argument`]]
 
         """
         argsetSearch = copy.deepcopy(argset) 
@@ -114,10 +114,10 @@ class Dialogue(object):
         Evaluates the dialogue from text file
         """
 
-        self.propositions = commandStack['PropLiterals']['propositions']
+        self.propositions = commandStack['PropLiterals']
         self.argumentsDefense = commandStack['Arguments']['Defense']
         self.argumentsProsecution = commandStack['Arguments']['Prosecution']
-        self.ps = ProofStandard(commandStack['PropLiterals']['proofstandardList'])
+        self.ps = ProofStandard(commandStack['proofstandardList'])
         weights = commandStack['ArgumentWeights']
         assumptions = commandStack['Assumptions']
         self.audience = Audience(assumptions,weights)

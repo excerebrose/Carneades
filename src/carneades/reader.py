@@ -124,11 +124,23 @@ class Reader(object):
         :raises NameError: if the var_name isn't initialised
 
         """
-        if var_name in self.initialised_variables :
-            if var_type == type(self.initialised_variables[var_name]):
-                return self.initialised_variables[var_name]
-            else:
-                raise TypeError("{} doesn't match required type {}".format(type(self.initialised_variables[var_name]),var_type))
+        type = 'None'
+        if var_type ==  PropLiteral:
+            type = 'PropLiteral'
+        elif var_type ==  Argument:
+            type = 'Argument'
+        elif var_type == ArgumentSet:
+            type = 'ArgumentSet'
+        elif var_type == Audience:
+            type = 'Audience'
+        elif var_type == ProofStandard:
+            type = 'ProofStandard'
+        elif var_type == CAES:
+            type = 'CAES'
+        else:
+            type = 'func'
+        if var_name in self.initialised_variables[type] :
+            return self.initialised_variables[type][var_name]
         else:
             raise NameError("{} is not defined".format(var_name))
 
@@ -151,10 +163,11 @@ class Reader(object):
         optional_keys = ['return_var']
         valid_functions = {
         'PropLiteral':{'valid_args':['polarity','proofStandard'],'req_args':[]},
-        'Argument':{'valid_args':['conclusion','premises','exceptions'],'req_args':['conclusion']},
+        'Argument':{'valid_args':['conclusion','premises','exceptions','weight','by'],'req_args':['conclusion']},
         'ArgumentSet':{'valid_args':[],'req_args':[]},
         'Audience': {'valid_args':['assumptions','weight'],'req_args':['assumptions','weight']}, 
         'ProofStandard': {'valid_args':['propstandards'],'req_args':['propstandards']},
+        'Assumptions': {'valid_args':['props'],'req_args':['props']},
         'CAES':{'valid_args':['argset','audience','proofstandard','alpha','beta','gamma'],'req_args':['argset','audience','proofstandard']},
         'negate':{'valid_args':['return_var'],'req_args':[]},
         'add_argument':{'valid_args':['argument','arg_id'],'req_args':['argument']},
@@ -204,7 +217,7 @@ class Reader(object):
         :raises ValueError: if the return_var is added when not required
         """
         command_stack = yaml.load(self.fileObject)
-        self.initialised_variables = {}
+        self.initialised_variables = {"PropLiteral":{},"Argument":{},"ArgumentSet":{},"Assumptions":{}, "Weights":{},"ProofStandard":{},"Audience":{},"CAES":{},"proofStandardList":[]}
         print("Deserialising file {}".format(self.fileObject.name))
         for k,command in command_stack.items():
             print("Processing command {}...".format(k))
@@ -214,27 +227,41 @@ class Reader(object):
             args = command['args']
             if (command['type'] == "construct"):
                 if func_name == "PropLiteral":
-                    if args != "None":
-                        self.initialised_variables[var_name] = PropLiteral(var_name,polarity=args['polarity'])
+                    if 'polarity' in args and args["polarity"] != "None":
+                        self.initialised_variables["PropLiteral"][var_name]= PropLiteral(var_name,polarity=args['polarity'])
                     else:
-                        self.initialised_variables[var_name] = PropLiteral(var_name)
+                        self.initialised_variables["PropLiteral"][var_name] = PropLiteral(var_name)
+                    if 'proofStandard' in args and args["proofStandard"] != "None":
+                        self.initialised_variables['proofStandardList'].append((self.initialised_variables["PropLiteral"][var_name], args["proofStandard"]))
+                    else:
+                        self.initialised_variables['proofStandardList'].append((self.initialised_variables["PropLiteral"][var_name], "scintilla"))
                 if func_name == "Argument":
                     premises = []
                     exceptions = []
-                    conclusion = self.is_initialized(args['conclusion'],PropLiteral)
+                    conclusion = self.is_initialized(args['conclusion'],PropLiteral)                        
                     if 'premises' in args and args["premises"] != "None":
-                        premises = [self.is_initialized(x,PropLiteral) for x in args['premises']]
+                       premises = [self.is_initialized(x,PropLiteral) for x in args['premises']]
                     if 'exceptions' in args and args["exceptions"] != "None":
                         exceptions = [self.is_initialized(x,PropLiteral) for x in args['exceptions']]
-                    self.initialised_variables[var_name] = Argument(conclusion,premises=set(premises),exceptions=set(exceptions))
+                    if 'by' not in args or args["by"] == "None":
+                        args["by"] = "Prosecution" #default
+                    if args["by"] != "Defense" and args["by"] != "Prosecution":
+                        raise ValueError("{} invalid value".format(args["by"]))
+                    self.initialised_variables["Argument"][var_name] = (Argument(conclusion,premises=set(premises),exceptions=set(exceptions)),args["by"])
+                    if 'weight' not in args or args['weigh'] == "None":
+                        args['weight'] = 0.0
+                    self.initialised_variables["Weights"][var_name] = args["weight"]
                 if func_name == "ArgumentSet":
-                    self.initialised_variables[var_name] = ArgumentSet()
+                    self.initialised_variables['ArgumentSet'][var_name] = ArgumentSet()
                 if func_name == "Audience":
                     assumptions = [self.is_initialized(x,PropLiteral) for x in args['assumptions']]
-                    self.initialised_variables[var_name] = Audience(set(assumptions),args['weight'])
+                    self.initialised_variables['Audience'][var_name] = Audience(set(assumptions),args['weight'])
                 if func_name == "ProofStandard":
                     prop_standards = [(self.is_initialized(k,PropLiteral),v) for k,v in args['propstandards'].items()]
-                    self.initialised_variables[var_name] = ProofStandard(prop_standards)
+                    self.initialised_variables['ProofStandard'][var_name] = ProofStandard(prop_standards)
+                if func_name == "Assumptions":
+                    assumptions = [self.is_initialized(prop, PropLiteral) for prop in args['props']]
+                    self.initialised_variables['Assumptions'][var_name] = assumptions
                 if func_name == "CAES":
                     argset = self.is_initialized(args['argset'],ArgumentSet)
                     audience = self.is_initialized(args['audience'],Audience)
@@ -248,7 +275,7 @@ class Reader(object):
                         alpha = args['beta']
                     if 'gamma' in args and args['gamma'] != "gamma":
                         alpha = args['gamma']
-                    self.initialised_variables[var_name] = CAES(argset,audience,proofStandard,alpha,beta,gamma)
+                    self.initialised_variables['CAES'][var_name] = CAES(argset,audience,proofStandard,alpha,beta,gamma)
             elif (command['type'] == "func"):
                 return_var = None
                 if 'return_var' in args and args['return_var'] != "None":
@@ -256,19 +283,20 @@ class Reader(object):
                 if func_name == 'negate':
                     var = self.is_initialized(var_name, PropLiteral)
                     if return_var is not None:
-                        self.initialised_variables[return_var] = var.negate()
+                        self.initialised_variables['PropLiteral'][return_var] = var.negate()
                     else:
                         print(var.negate())
                 if func_name == 'add_argument':
                     var = self.is_initialized(var_name, ArgumentSet)
                     arg = self.is_initialized(args['argument'], Argument)
                     arg_id = None
+                    print(arg[0])
                     if 'arg_id' in args and args['arg_id'] != "None":
                         arg_id = args['arg_id']
                     if return_var is not None:
                         raise ValueError("{} does not take a return variable".format(func_name))
                     else:
-                        var.add_argument(arg,arg_id)
+                        var.add_argument(arg[0],arg_id)
                 if func_name == "draw":
                     var = self.is_initialized(var_name, ArgumentSet)
                     debug = False
@@ -356,8 +384,9 @@ class Reader(object):
 
 def reader_demo():
     r = Reader()
-    f = open('test1.txt','r')
+    f = open('test2.txt','r')
     r.load(f)
+
 
 DOCTEST = False
 

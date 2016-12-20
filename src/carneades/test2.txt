@@ -55,24 +55,16 @@
     args:
         conclusion: murder
         premises: [kill, intent]
+        by: Prosecution
+        weight: 0.4
 
-9: 
-    func_name: Argument
+9:
+    func_name: Assumptions
     type: construct
-    var_name: arg2
+    var_name: assump
     args:
-        conclusion: intent
-        premises: [witness1]
-        exceptions: [unreliable1]
+        props: [intent, kill]
 10: 
-    func_name: Argument
-    type: construct
-    var_name: arg3
-    args:
-        conclusion: neg_intent
-        premises: [witness2]
-        exceptions: [unreliable2]
-11: 
     func_name: Audience
     type: construct
     var_name: audience
@@ -82,53 +74,9 @@
             arg1: 0.8
             arg2: 0.3 
             arg3: 0.8
-12: 
+11: 
     func_name: ArgumentSet
     var_name: argset
     type: construct
     args:
         None
-
-13: 
-    func_name: add_argument
-    var_name: argset
-    type: func
-    args:
-        argument: arg1
-14: 
-    func_name: add_argument
-    var_name: argset
-    type: func
-    args:
-        argument: arg2
-15: 
-    func_name: add_argument
-    var_name: argset
-    type: func
-    args:
-        argument: arg3
-16:
-   func_name: ProofStandard
-   var_name: ps
-   type: construct
-   args:
-      propstandards:
-        intent: "beyond_reasonable_doubt"
-
-17:
-   func_name: CAES
-   var_name: caes
-   type: construct
-   args:
-      argset: argset
-      audience: audience
-      proofstandard: ps
-
-
-18:
-    func_name: acceptable
-    var_name: caes
-    type: func
-    args:
-        proposition: murder
-
