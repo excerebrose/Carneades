@@ -27,4 +27,12 @@ carneades.reader module
     :undoc-members:
     :special-members: __init__
 
+carneades.dialogue module
+---------------------------
+
+.. automodule:: carneades.dialogue
+    :members:
+    :undoc-members:
+    :special-members: __init__
+
 
