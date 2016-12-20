@@ -150,7 +150,7 @@ class Reader(object):
         must_have_keys = ['type','func_name','var_name','args']
         optional_keys = ['return_var']
         valid_functions = {
-        'PropLiteral':{'valid_args':['polarity'],'req_args':[]},
+        'PropLiteral':{'valid_args':['polarity','proofStandard'],'req_args':[]},
         'Argument':{'valid_args':['conclusion','premises','exceptions'],'req_args':['conclusion']},
         'ArgumentSet':{'valid_args':[],'req_args':[]},
         'Audience': {'valid_args':['assumptions','weight'],'req_args':['assumptions','weight']}, 

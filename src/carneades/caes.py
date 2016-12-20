@@ -816,7 +816,7 @@ def arg_demo():
     audience = Audience(assumptions, weights)
     caes = CAES(argset, audience, ps)
     caes.acceptable(murder)
-    caes.acceptable(murder.negate())
+    #caes.acceptable(murder.negate())
 
 
 DOCTEST = False
@@ -828,4 +828,3 @@ if __name__ == '__main__':
         doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE)
     else:
        arg_demo()
-       reader_demo()
