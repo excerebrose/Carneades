@@ -9,7 +9,7 @@
     type: construct
     var_name: intent
     args:
-        None
+        proofStandard: "beyond_reasonable_doubt"
 2:
     func_name: negate
     type: func
@@ -56,7 +56,7 @@
         conclusion: murder
         premises: [kill, intent]
         by: Prosecution
-        weight: 0.4
+        weight: 0.8
 
 9:
     func_name: Argument
@@ -66,8 +66,8 @@
         conclusion: intent
         premises: [witness1]
         exceptions: [unreliable1]
-        by: Defense
-        weight: 0.6
+        by: Prosecution
+        weight: 0.3
 10: 
     func_name: Argument
     type: construct
@@ -77,7 +77,7 @@
         premises: [witness2]
         exceptions: [unreliable2]
         by: Defense
-        weight: 0.5
+        weight: 0.8
 
 
 11:
@@ -85,11 +85,5 @@
     type: construct
     var_name: assump
     args:
-        props: [intent, kill]
+        props: [kill, witness1, witness2, unreliable1]
 
-12: 
-    func_name: ArgumentSet
-    var_name: argset
-    type: construct
-    args:
-        None

@@ -134,35 +134,30 @@ class Dialogue(object):
             burdenOfProof = self.burdenOfProofLocation(burdenOfProof,caes)
 
             if (burdenOfProof == "Defense"):
-                print('Burden of Proof on Defense')
+                print('\n ***** Burden of Proof on Defense *****')
                 res = self.findBestArgument(argumentsDefenseUsing, argset,burdenOfProof, depth = 4)
                 if len(res)==3:
                     caes, argset, argumentDefenseUsing = res[0], res[1], res[2]
                 else:
-                    print('AI cannot come up with a valid solution for Defense')
+                    print('AI cannot come up with a valid solution for Defense. Prosecution Wins')
                     break
 
             elif(burdenOfProof=="Prosecution"):
-                print('Burden of proof on Prosecution')
-                res = self.findBestArgument(argumentsProsecutionUsing,burdenOfProof, depth = 4)
+                print('\n ***** Burden of proof on Prosecution *****')
+                res = self.findBestArgument(argumentsProsecutionUsing,argset, burdenOfProof, depth = 4)
                 if len(res)==3:
                     caes, argset, argumentDefenseUsing = res[0], res[1], res[2]
                 else:
-                    print('AI cannot come up with a valid solution for Prosecution')
+                    print('AI cannot come up with a valid solution for Prosecution. Defense Wins')
                     break
 
             else: raise Exception('Burden of Proof Invalid : {}'.format(burdenOfProof)) 
 
-def reader_demo():
+def dialogue_demo():
     r = Dialogue('test2.txt')
+    r.evaluateDialogue()
 
 
-DOCTEST = False
 
 if __name__ == '__main__':
-
-    if DOCTEST:
-        import doctest
-        doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE)
-    else:
-       reader_demo()
+    dialogue_demo()

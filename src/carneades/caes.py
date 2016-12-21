@@ -168,10 +168,10 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 from carneades.tracecalls import TraceCalls
 
 
-LOGLEVEL = logging.DEBUG
+#LOGLEVEL = logging.DEBUG
 # Uncomment the following line to raise the logging level and thereby turn off
 # debug messages
-# LOGLEVEL = logging.INFO
+LOGLEVEL = logging.INFO
 
 
 logging.basicConfig(format='%(levelname)s: %(message)s', level=LOGLEVEL)
