@@ -59,22 +59,35 @@
         weight: 0.4
 
 9:
+    func_name: Argument
+    type: construct
+    var_name: arg2
+    args:
+        conclusion: intent
+        premises: [witness1]
+        exceptions: [unreliable1]
+        by: Defense
+        weight: 0.6
+10: 
+    func_name: Argument
+    type: construct
+    var_name: arg3
+    args:
+        conclusion: neg_intent
+        premises: [witness2]
+        exceptions: [unreliable2]
+        by: Defense
+        weight: 0.5
+
+
+11:
     func_name: Assumptions
     type: construct
     var_name: assump
     args:
         props: [intent, kill]
-10: 
-    func_name: Audience
-    type: construct
-    var_name: audience
-    args:
-        assumptions: [kill, witness1, witness2, unreliable2]
-        weight:
-            arg1: 0.8
-            arg2: 0.3 
-            arg3: 0.8
-11: 
+
+12: 
     func_name: ArgumentSet
     var_name: argset
     type: construct

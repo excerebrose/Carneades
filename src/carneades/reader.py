@@ -71,6 +71,7 @@ import yaml
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
 from carneades.caes import PropLiteral, Argument, ArgumentSet, Audience, ProofStandard, CAES
+from copy import deepcopy
 
 class Reader(object):
     """
@@ -106,6 +107,21 @@ class Reader(object):
         print('Loading text file {}'.format(fileObject.name))
         self.fileObject = fileObject
         self.deserialise()
+    
+    def getCommandStack(self):
+        commandStack = {}
+        commandStack['PropLiteral'] = deepcopy(self.initialised_variables['PropLiteral'])
+        commandStack['Assumptions'] = [item for v in  self.initialised_variables['Assumptions'].values() for item in v]
+        commandStack['Weights'] = deepcopy(self.initialised_variables['Weights'])
+        commandStack['proofStandardList'] = deepcopy(self.initialised_variables['proofStandardList'])
+        commandStack['ArgumentsDefense'] = []
+        commandStack['ArgumentsProsecution'] = []
+        for v in self.initialised_variables['Argument'].values():
+            if(v[1]=="Defense"):
+                commandStack['ArgumentsDefense'].append(v[0])
+            else:
+                commandStack['ArgumentsProsecution'].append(v[0])
+        return commandStack
 
     def is_initialized(self, var_name, var_type):
         """
@@ -248,7 +264,7 @@ class Reader(object):
                     if args["by"] != "Defense" and args["by"] != "Prosecution":
                         raise ValueError("{} invalid value".format(args["by"]))
                     self.initialised_variables["Argument"][var_name] = (Argument(conclusion,premises=set(premises),exceptions=set(exceptions)),args["by"])
-                    if 'weight' not in args or args['weigh'] == "None":
+                    if 'weight' not in args or args['weight'] == "None":
                         args['weight'] = 0.0
                     self.initialised_variables["Weights"][var_name] = args["weight"]
                 if func_name == "ArgumentSet":

@@ -49,9 +49,9 @@ class Dialogue(object):
         :rtype: str
 
         """
-        if (burdenOfProof == "Defense") and caes.acceptable(self.argumentsDefense.values()[0].conclusion):
+        if (burdenOfProof == "Defense") and caes.acceptable(self.argumentsDefense[0].conclusion):
             return "Prosecution"
-        elif burdenOfProof == "Prosecution" and caes.acceptable(self.argumentsProsecution.values()[0].conclusion):
+        elif burdenOfProof == "Prosecution" and caes.acceptable(self.argumentsProsecution[0].conclusion):
             return "Defense"
         else:
             return burdenOfProof
@@ -79,21 +79,21 @@ class Dialogue(object):
         :rtype: [:class:`.CAES`,  :class:`.ArgumentSet`, [:class:`Argument`]]
 
         """
-        argsetSearch = copy.deepcopy(argset) 
-        if (len(availArgs.items()) >= depth):
+        argsetSearch = deepcopy(argset) 
+        if (len(availArgs) >= depth):
             pass
         else:
-            depth = len(availArgs.items())
+            depth = len(availArgs)
 
         if burdenOfProof == "Defense":
-            conclusion = self.argumentsDefense.values()[0].conclusion
+            conclusion = self.argumentsDefense[0].conclusion
         else:
-            conclusion = self.argumentsProsecution.values()[0].conclusion
+            conclusion = self.argumentsProsecution[0].conclusion
 
-        combinations = combinations(availArgs.values(),depth)
-        for c in combinations:
+        combos = combinations(availArgs,depth)
+        for c in combos:
             usedArguments = []
-            for arg in combination:
+            for arg in c:
                 argsetSearch.add_argument(arg)
                 usedArguments.append(arg)
 
@@ -114,19 +114,19 @@ class Dialogue(object):
         Evaluates the dialogue from text file
         """
 
-        self.propositions = commandStack['PropLiterals']
-        self.argumentsDefense = commandStack['Arguments']['Defense']
-        self.argumentsProsecution = commandStack['Arguments']['Prosecution']
-        self.ps = ProofStandard(commandStack['proofstandardList'])
-        weights = commandStack['ArgumentWeights']
-        assumptions = commandStack['Assumptions']
+        self.propositions = self.commandStack['PropLiteral']
+        self.argumentsDefense = self.commandStack['ArgumentsDefense']
+        self.argumentsProsecution = self.commandStack['ArgumentsProsecution']
+        self.ps = ProofStandard(self.commandStack['proofStandardList'])
+        weights = self.commandStack['Weights']
+        assumptions = self.commandStack['Assumptions']
         self.audience = Audience(assumptions,weights)
         argumentsDefenseUsing = deepcopy(self.argumentsDefense)
         argumentsProsecutionUsing = deepcopy(self.argumentsProsecution)
         
         argset = ArgumentSet()
-        argset.add_argument(self.argumentsProsecution.values()[0])
-        argset.add_argument(self.argumentsDefense.values()[0])
+        argset.add_argument(self.argumentsProsecution[0])
+        argset.add_argument(self.argumentsDefense[0])
         burdenOfProof = "Defense" 
         while(True):
 
@@ -152,3 +152,17 @@ class Dialogue(object):
                     break
 
             else: raise Exception('Burden of Proof Invalid : {}'.format(burdenOfProof)) 
+
+def reader_demo():
+    r = Dialogue('test2.txt')
+
+
+DOCTEST = False
+
+if __name__ == '__main__':
+
+    if DOCTEST:
+        import doctest
+        doctest.testmod(optionflags=doctest.NORMALIZE_WHITESPACE)
+    else:
+       reader_demo()
